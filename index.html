@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小城天氣</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: linear-gradient(135deg, #74ebd5, #9face6); min-height: 100vh; padding: 20px; }
+  .container { max-width: 500px; margin: 0 auto; }
+  .card { background: rgba(255,255,255,0.92); border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
+  .city { font-size: 22px; font-weight: 700; color: #333; margin-bottom: 8px; }
+  .temp { font-size: 52px; font-weight: 800; color: #111; margin: 10px 0; }
+  .desc { font-size: 15px; color: #555; margin-bottom: 16px; }
+  .emoji { font-size: 44px; margin: 14px 0; }
+  .detail { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; color: #666; }
+  .detail div { background: #f5f5f5; border-radius: 10px; padding: 10px; text-align: center; }
+  .label { font-size: 11px; color: #999; display: block; margin-bottom: 4px; }
+  .value { font-weight: 700; color: #333; }
+  .time { font-size: 12px; color: #999; margin-top: 12px; }
+  .section-title { font-size: 16px; font-weight: 700; color: #333; margin: 0 0 14px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+  .month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .month-card { background: #fff; border-radius: 14px; padding: 14px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+  .month-card .mname { font-weight: 700; font-size: 14px; color: #333; margin-bottom: 6px; }
+  .month-card .mtemp { font-size: 20px; font-weight: 800; color: #e67e22; margin: 2px 0; }
+  .month-card .manom { font-size: 11px; color: #e67e22; margin-bottom: 8px; }
+  .month-card .mprecip { font-size: 13px; color: #2980b9; font-weight: 600; margin-bottom: 4px; }
+  .month-card .panom { font-size: 10px; color: #2980b9; }
+  .note { font-size: 11px; color: #888; margin-top: 12px; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="city" id="city">載入中…</div>
+    <div class="emoji" id="emoji">🌤️</div>
+    <div class="temp" id="temp">--°C</div>
+    <div class="desc" id="desc">正在獲取即時天氣</div>
+    <div class="detail">
+      <div><span class="label">體感溫度</span><span class="value" id="feelslike">--°C</span></div>
+      <div><span class="label">濕度</span><span class="value" id="humidity">--%</span></div>
+      <div><span class="label">降水</span><span class="value" id="precip">--mm</span></div>
+      <div><span class="label">風速</span><span class="value" id="windspeed">--km/h</span></div>
+    </div>
+    <div class="time" id="time">更新中…</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📅 未來 3 個月季節展望（香港）</div>
+    <div class="month-grid" id="months">
+      <!-- 由 JavaScript 動態填入 -->
+    </div>
+    <div class="note">資料來源：Open-Meteo / ECMWF SEAS5 季節氣候模型。這是氣候趨勢展望，非每日精確預報；溫度與降水為月平均值，異常值為較常年平均的偏離。</div>
+  </div>
+</div>
+
+<script>
+const LAT = 22.3193;
+const LON = 114.1694;
+
+const weatherCodes = {
+  0: {emoji: "☀️", desc: "晴朗"},
+  1: {emoji: "🌤️", desc: "主要晴朗"},
+  2: {emoji: "⛅", desc: "部分雲"},
+  3: {emoji: "☁️", desc: "多雲"},
+  45: {emoji: "🌫️", desc: "霧"},
+  48: {emoji: "🌫️", desc: "結霧"},
+  51: {emoji: "🌦️", desc: "輕微毛毛雨"},
+  53: {emoji: "🌧️", desc: "毛毛雨"},
+  55: {emoji: "🌧️", desc: "強烈毛毛雨"},
+  56: {emoji: "🌧️", desc: "輕微凍雨"},
+  57: {emoji: "🌧️", desc: "強烈凍雨"},
+  61: {emoji: "🌧️", desc: "小雨"},
+  63: {emoji: "🌧️", desc: "中雨"},
+  65: {emoji: "🌧️", desc: "大雨"},
+  66: {emoji: "🌧️", desc: "輕微凍雨"},
+  67: {emoji: "🌧️", desc: "強烈凍雨"},
+  71: {emoji: "🌨️", desc: "小雪"},
+  73: {emoji: "🌨️", desc: "中雪"},
+  75: {emoji: "🌨️", desc: "大雪"},
+  77: {emoji: "🌨️", desc: "雪粒"},
+  80: {emoji: "🌦️", desc: "陣雨"},
+  81: {emoji: "🌧️", desc: "中度陣雨"},
+  82: {emoji: "🌧️", desc: "強烈陣雨"},
+  85: {emoji: "🌨️", desc: "小陣雪"},
+  86: {emoji: "🌨️", desc: "強烈陣雪"},
+  95: {emoji: "⛈️", desc: "雷雨"},
+  96: {emoji: "⛈️", desc: "輕微雷雨伴冰雹"},
+  99: {emoji: "⛈️", desc: "強烈雷雨伴冰雹"},
+};
+
+const monthNames = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+async function fetchWeather() {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weathercode,wind_speed_10m&timezone=Asia%2FHong_Kong`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const cur = data.current;
+    const code = cur.weathercode;
+    const info = weatherCodes[code] || {emoji: "🌤️", desc: "未知"};
+
+    document.getElementById('city').textContent = '香港';
+    document.getElementById('emoji').textContent = info.emoji;
+    document.getElementById('temp').textContent = cur.temperature_2m + '°C';
+    document.getElementById('desc').textContent = info.desc;
+    document.getElementById('feelslike').textContent = cur.apparent_temperature + '°C';
+    document.getElementById('humidity').textContent = cur.relative_humidity_2m + '%';
+    document.getElementById('precip').textContent = cur.precipitation + 'mm';
+    document.getElementById('windspeed').textContent = cur.wind_speed_10m + 'km/h';
+    document.getElementById('time').textContent = '更新時間：' + new Date().toLocaleString('zh-HK');
+  } catch (e) {
+    document.getElementById('desc').textContent = '即時天氣獲取失敗';
+    console.error(e);
+  }
+}
+
+async function fetchSeasonal() {
+  try {
+    const url = `https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${LAT}&longitude=${LON}&monthly=temperature_2m_mean,temperature_2m_anomaly,precipitation_mean,precipitation_anomaly`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const times = data.monthly.time;
+    const temps = data.monthly.temperature_2m_mean;
+    const tanoms = data.monthly.temperature_2m_anomaly;
+    const precs = data.monthly.precipitation_mean;
+    const panoms = data.monthly.precipitation_anomaly;
+
+    const grid = document.getElementById('months');
+    grid.innerHTML = '';
+
+    for (let i = 0; i < 3 && i < times.length; i++) {
+      const d = new Date(times[i] + 'T00:00:00');
+      const mname = monthNames[d.getMonth()];
+      const temp = temps[i].toFixed(1);
+      const tanom = tanoms[i] >= 0 ? '+' + tanoms[i].toFixed(1) : tanoms[i].toFixed(1);
+      const prec = precs[i].toFixed(1);
+      const panom = panoms[i] >= 0 ? '+' + panoms[i].toFixed(1) : panoms[i].toFixed(1);
+
+      const card = document.createElement('div');
+      card.className = 'month-card';
+      card.innerHTML = `
+        <div class="mname">${mname}</div>
+        <div class="mtemp">${temp}°C</div>
+        <div class="manom">氣溫異常 ${tanom}°C</div>
+        <div class="mprecip">${prec} mm</div>
+        <div class="panom">降水異常 ${panom} mm</div>
+      `;
+      grid.appendChild(card);
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('months').innerHTML = '<div style="grid-column:1/-1;color:#c0392b;">季節預報獲取失敗</div>';
+  }
+}
+
+fetchWeather();
+fetchSeasonal();
+setInterval(fetchWeather, 10 * 60 * 1000);
+</script>
+</body>
+</html>

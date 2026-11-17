@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  weather:
+    build: .
+    container_name: weather-site
+    restart: unless-stopped
+    ports:
+      - "8081:80"
