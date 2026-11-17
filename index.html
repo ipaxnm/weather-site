@@ -6,19 +6,28 @@
 <title>小城天氣</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: linear-gradient(135deg, #74ebd5, #9face6); min-height: 100vh; padding: 20px; }
-  .container { max-width: 500px; margin: 0 auto; }
-  .card { background: rgba(255,255,255,0.92); border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
-  .city { font-size: 22px; font-weight: 700; color: #333; margin-bottom: 8px; }
-  .temp { font-size: 52px; font-weight: 800; color: #111; margin: 10px 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: linear-gradient(135deg, #74ebd5, #9face6); min-height: 100vh; padding: 16px; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .card { background: rgba(255,255,255,0.92); border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
+  .city { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 6px; }
+  .temp { font-size: 48px; font-weight: 800; color: #111; margin: 8px 0; }
   .desc { font-size: 15px; color: #555; margin-bottom: 16px; }
-  .emoji { font-size: 44px; margin: 14px 0; }
-  .detail { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; color: #666; }
-  .detail div { background: #f5f5f5; border-radius: 10px; padding: 10px; text-align: center; }
+  .emoji { font-size: 40px; margin: 12px 0; }
+  .detail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 13px; color: #666; }
+  .detail div { background: #f5f5f5; border-radius: 12px; padding: 12px; text-align: center; }
   .label { font-size: 11px; color: #999; display: block; margin-bottom: 4px; }
   .value { font-weight: 700; color: #333; }
-  .time { font-size: 12px; color: #999; margin-top: 12px; }
-  .section-title { font-size: 16px; font-weight: 700; color: #333; margin: 0 0 14px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+  .time { font-size: 12px; color: #999; margin-top: 10px; }
+  .section-title { font-size: 16px; font-weight: 700; color: #333; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+  .forecast-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .forecast-card { background: #fff; border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+  .forecast-card .fdate { font-weight: 700; font-size: 13px; color: #333; margin-bottom: 4px; }
+  .forecast-card .fweek { font-size: 11px; color: #888; margin-bottom: 6px; }
+  .forecast-card .femoji { font-size: 28px; margin: 4px 0; }
+  .forecast-card .fweather { font-size: 12px; color: #555; margin-bottom: 6px; }
+  .forecast-card .ftemp { font-size: 16px; font-weight: 700; color: #e67e22; margin-bottom: 4px; }
+  .forecast-card .frh { font-size: 11px; color: #2980b9; margin-bottom: 4px; }
+  .forecast-card .fwind { font-size: 10px; color: #666; }
   .month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .month-card { background: #fff; border-radius: 14px; padding: 14px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
   .month-card .mname { font-weight: 700; font-size: 14px; color: #333; margin-bottom: 6px; }
@@ -28,6 +37,10 @@
   .month-card .panom { font-size: 10px; color: #2980b9; }
   .note { font-size: 11px; color: #888; margin-top: 12px; line-height: 1.4; }
   .source { font-size: 10px; color: #666; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc; text-align: left; }
+  .sources-panel { font-size: 11px; color: #666; line-height: 1.5; }
+  .sources-panel h4 { font-size: 13px; color: #333; margin: 10px 0 6px 0; }
+  .sources-panel ul { margin-left: 16px; }
+  .sources-panel li { margin: 4px 0; }
 </style>
 </head>
 <body>
@@ -48,12 +61,36 @@
   </div>
 
   <div class="card">
+    <div class="section-title">📅 香港天文台 9 天天氣預報</div>
+    <div class="forecast-grid" id="forecast">
+      <!-- 由 JavaScript 動態填入 -->
+    </div>
+    <div class="source">📡 9 天預報：香港天文台 Open Data（data.weather.gov.hk，香港本地官方氣象數據）</div>
+  </div>
+
+  <div class="card">
     <div class="section-title">📅 未來 3 個月季節展望（香港）</div>
     <div class="month-grid" id="months">
       <!-- 由 JavaScript 動態填入 -->
     </div>
-    <div class="note">資料來源：Open-Meteo / ECMWF SEAS5 季節氣候模型（歐洲中期天氣預報中心）。這是氣候趨勢展望，非每日精確預報；溫度與降水為月平均值，異常值為較常年平均的偏離。</div>
+    <div class="note">這是氣候趨勢展望，非每日精確預報；溫度與降水為月平均值，異常值為較常年平均的偏離。</div>
     <div class="source">📡 季節展望：ECMWF SEAS5 / Open-Meteo Seasonal API（長達 9 個月機率性預報）</div>
+  </div>
+
+  <div class="card">
+    <div class="sources-panel">
+      <h4>🔗 其他免費天氣資源（供參考）</h4>
+      <ul>
+        <li><strong>Open-Meteo</strong>：免 Key，整合 ECMWF、NOAA 等多國模型，適合自動化腳本與 AI Agent 串接。</li>
+        <li><strong>香港天文台 HKO Open Data</strong>：免 Key，香港本地官方 JSON/CSV 數據，涵蓋 9 天預報、分區氣溫、警告信號。</li>
+        <li><strong>wttr.in</strong>：免 Key，支援終端機 curl 查詢或 JSON 回傳，適合快速 CLI 查詢。</li>
+        <li><strong>OpenWeatherMap</strong>：需註冊，免費版每日 1,000 次呼叫，涵蓋全球城市現況與 5 天/3 小時預報。</li>
+        <li><strong>和風天氣 QWeather</strong>：需註冊，個人開發者每日 1,000 次，對中國內地、港澳台數據支援極佳。</li>
+        <li><strong>Windy.com / Ventusky</strong>：免費專業氣象網頁與 App，視覺化氣象圖表，適合日常出行規劃。</li>
+        <li><strong>我的天文台 App（香港）</strong>：香港本地短時降雨預報與雷達回波圖，準確度最高。</li>
+        <li><strong>台灣中央氣象署 CWA</strong>：台灣鄉鎮逐時預報、紫外線與累積雨量圖。</li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -92,6 +129,37 @@ const weatherCodes = {
   99: {emoji: "⛈️", desc: "強烈雷雨伴冰雹"},
 };
 
+const hkoIconMap = {
+  50: "☀️", 51: "🌤️", 52: "⛅", 53: "☁️", 54: "🌥️", 55: "🌦️", 56: "🌧️", 57: "🌧️",
+  60: "🌧️", 61: "🌦️", 62: "🌧️", 63: "🌧️", 64: "🌧️", 65: "🌧️", 66: "🌧️", 67: "🌧️",
+  70: "🌧️", 71: "🌧️", 72: "🌧️", 73: "🌧️", 74: "🌧️", 75: "🌧️", 76: "🌧️", 77: "🌧️",
+  80: "🌧️", 81: "🌧️", 82: "🌧️", 83: "🌧️", 84: "🌧️", 85: "🌧️", 86: "🌧️", 87: "🌧️",
+  90: "🌧️", 91: "🌧️", 92: "🌧️", 93: "🌧️", 94: "🌧️", 95: "🌧️", 96: "🌧️", 97: "🌧️",
+  98: "🌧️", 99: "🌧️", 100: "🌫️", 101: "🌫️", 102: "🌫️", 103: "🌫️", 104: "🌫️",
+  105: "🌫️", 106: "🌫️", 107: "🌫️", 108: "🌫️", 109: "🌫️", 110: "🌫️", 111: "🌫️",
+  112: "🌫️", 113: "🌫️", 114: "🌫️", 115: "🌫️", 116: "🌫️", 117: "🌫️", 118: "🌫️",
+  119: "🌫️", 120: "🌫️", 121: "🌫️", 122: "🌫️", 123: "🌫️", 124: "🌫️", 125: "🌫️",
+  126: "🌫️", 127: "🌫️", 128: "🌫️", 129: "🌫️", 130: "🌫️", 131: "🌫️", 132: "🌫️",
+  133: "🌫️", 134: "🌫️", 135: "🌫️", 136: "🌫️", 137: "🌫️", 138: "🌫️", 139: "🌫️",
+  140: "🌧️", 141: "🌧️", 142: "🌧️", 143: "🌧️", 144: "🌧️", 145: "🌧️", 146: "🌧️",
+  147: "🌧️", 148: "🌧️", 149: "🌧️", 150: "🌧️", 151: "🌧️", 152: "🌧️", 153: "🌧️",
+  154: "🌧️", 155: "🌧️", 156: "🌧️", 157: "🌧️", 158: "🌧️", 159: "🌧️", 160: "🌧️",
+  161: "🌧️", 162: "🌧️", 163: "🌧️", 164: "🌧️", 165: "🌧️", 166: "🌧️", 167: "🌧️",
+  168: "🌧️", 169: "🌧️", 170: "🌧️", 171: "🌧️", 172: "🌧️", 173: "🌧️", 174: "🌧️",
+  175: "🌧️", 176: "🌧️", 177: "🌧️", 178: "🌧️", 179: "🌧️", 180: "🌧️", 181: "🌧️",
+  182: "🌧️", 183: "🌧️", 184: "🌧️", 185: "🌧️", 186: "🌧️", 187: "🌧️", 188: "🌧️",
+  189: "🌧️", 190: "🌧️", 191: "🌧️", 192: "🌧️", 193: "🌧️", 194: "🌧️", 195: "🌧️",
+  196: "🌧️", 197: "🌧️", 198: "🌧️", 199: "🌧️", 200: "🌧️", 201: "🌧️", 202: "🌧️",
+  203: "🌧️", 204: "🌧️", 205: "🌧️", 206: "🌧️", 207: "🌧️", 208: "🌧️", 209: "🌧️",
+  210: "🌧️", 211: "🌧️", 212: "🌧️", 213: "🌧️", 214: "🌧️", 215: "🌧️", 216: "🌧️",
+  217: "🌧️", 218: "🌧️", 219: "🌧️", 220: "🌧️", 221: "🌧️", 222: "🌧️", 223: "🌧️",
+  224: "🌧️", 225: "🌧️", 226: "🌧️", 227: "🌧️", 228: "🌧️", 229: "🌧️", 230: "🌧️",
+  231: "🌧️", 232: "🌧️", 233: "🌧️", 234: "🌧️", 235: "🌧️", 236: "🌧️", 237: "🌧️",
+  238: "🌧️", 239: "🌧️", 240: "🌧️", 241: "🌧️", 242: "🌧️", 243: "🌧️", 244: "🌧️",
+  245: "🌧️", 246: "🌧️", 247: "🌧️", 248: "🌧️", 249: "🌧️", 250: "🌧️", 251: "🌧️",
+  252: "🌧️", 253: "🌧️", 254: "🌧️", 255: "🌧️"
+};
+
 const monthNames = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
 
 async function fetchWeather() {
@@ -116,6 +184,42 @@ async function fetchWeather() {
   } catch (e) {
     document.getElementById('desc').textContent = '即時天氣獲取失敗';
     console.error(e);
+  }
+}
+
+async function fetchHKOForecast() {
+  try {
+    const url = `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=tc`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const forecasts = data.weatherForecast.slice(0, 3);
+    const grid = document.getElementById('forecast');
+    grid.innerHTML = '';
+
+    forecasts.forEach(f => {
+      const dateStr = f.forecastDate;
+      const month = dateStr.substring(4,6);
+      const day = dateStr.substring(6,8);
+      const iconCode = parseInt(f.ForecastIcon);
+      const emoji = hkoIconMap[iconCode] || "🌤️";
+
+      const card = document.createElement('div');
+      card.className = 'forecast-card';
+      card.innerHTML = `
+        <div class="fdate">${month}/${day}</div>
+        <div class="fweek">${f.week}</div>
+        <div class="femoji">${emoji}</div>
+        <div class="fweather">${f.forecastWeather}</div>
+        <div class="ftemp">${f.forecastMintemp.value}°C / ${f.forecastMaxtemp.value}°C</div>
+        <div class="frh">相對濕度 ${f.forecastMinrh.value}% - ${f.forecastMaxrh.value}%</div>
+        <div class="fwind">${f.forecastWind}</div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (e) {
+    console.error(e);
+    document.getElementById('forecast').innerHTML = '<div style="grid-column:1/-1;color:#c0392b;">香港天文台預報獲取失敗</div>';
   }
 }
 
@@ -160,6 +264,7 @@ async function fetchSeasonal() {
 }
 
 fetchWeather();
+fetchHKOForecast();
 fetchSeasonal();
 setInterval(fetchWeather, 10 * 60 * 1000);
 </script>
