@@ -19,8 +19,9 @@
   .value { font-weight: 700; color: #333; }
   .time { font-size: 12px; color: #999; margin-top: 10px; }
   .section-title { font-size: 16px; font-weight: 700; color: #333; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
-  .forecast-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .forecast-card { background: #fff; border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+  .forecast-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+  .forecast-grid::-webkit-scrollbar { display: none; }
+  .forecast-card { flex: 0 0 auto; width: 150px; background: #fff; border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
   .forecast-card .fdate { font-weight: 700; font-size: 13px; color: #333; margin-bottom: 4px; }
   .forecast-card .fweek { font-size: 11px; color: #888; margin-bottom: 6px; }
   .forecast-card .femoji { font-size: 28px; margin: 4px 0; }
