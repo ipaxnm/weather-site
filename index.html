@@ -41,6 +41,14 @@
   .sources-panel h4 { font-size: 13px; color: #333; margin: 10px 0 6px 0; }
   .sources-panel ul { margin-left: 16px; }
   .sources-panel li { margin: 4px 0; }
+  .civic-panel { font-size: 11px; color: #666; line-height: 1.5; }
+  .civic-panel h4 { font-size: 13px; color: #333; margin: 10px 0 6px 0; }
+  .civic-item { background: #f8f9fa; border-radius: 10px; padding: 10px; margin: 6px 0; border-left: 3px solid #74ebd5; }
+  .civic-item .name { font-weight: 700; color: #333; margin-bottom: 2px; }
+  .civic-item .url { font-size: 9px; color: #0066cc; word-break: break-all; margin-bottom: 4px; }
+  .civic-item .desc { font-size: 10px; color: #555; margin-bottom: 4px; }
+  .civic-item .scene { font-size: 9px; color: #888; font-style: italic; }
+  .civic-tip { background: #fff3cd; border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 10px; color: #856404; }
 </style>
 </head>
 <body>
@@ -90,6 +98,66 @@
         <li><strong>我的天文台 App（香港）</strong>：香港本地短時降雨預報與雷達回波圖，準確度最高。</li>
         <li><strong>台灣中央氣象署 CWA</strong>：台灣鄉鎮逐時預報、紫外線與累積雨量圖。</li>
       </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="civic-panel">
+      <h4>🏘️ 民間氣象資源（香港及鄰近地區）</h4>
+
+      <div style="margin-bottom:8px;"><strong style="color:#333;">香港民間氣象組織</strong></div>
+      <div class="civic-item">
+        <div class="name">香港地下天文台</div>
+        <div class="url">weather.org.hk / Facebook</div>
+        <div class="desc">1995年成立，提供本地天氣預測、高空溫熵圖解讀及多國雷達圖整合。</div>
+        <div class="scene">適用：深入了解天氣背後氣象原理、查看專業高空圖與實時氣壓分佈</div>
+      </div>
+      <div class="civic-item">
+        <div class="name">MET WARN 天氣預警</div>
+        <div class="url">metwarn.hk / YouTube / IG</div>
+        <div class="desc">擅長分析熱帶氣旋（風球）路徑、暴雨發展趨勢，更新頻率極高。</div>
+        <div class="scene">適用：打風、暴雨期間追蹤多國電腦模式（ECMWF / GFS）路徑分歧</div>
+      </div>
+      <div class="civic-item">
+        <div class="name">香港天氣觀測站 (HKWW)</div>
+        <div class="url">hkww.org</div>
+        <div class="desc">匯集分區自動氣象站實時數據、日出日落時間及周邊地區雷達動畫。</div>
+        <div class="scene">適用：查詢分區微氣候變化及歷史天氣對比</div>
+      </div>
+
+      <div style="margin:8px 0 4px 0;"><strong style="color:#333;">微氣候自動氣象站網絡 (PWS)</strong></div>
+      <div class="civic-item">
+        <div class="name">Weather Underground (Wunderground)</div>
+        <div class="url">wunderground.com</div>
+        <div class="desc">全球最大民間氣象站網絡，香港各區屋苑或學校私人感測器即時數據，結合 IBM 數值模型逐小時預報。</div>
+        <div class="scene">適用：街道級即時溫度、濕度、陣風及雨量查詢</div>
+      </div>
+      <div class="civic-item">
+        <div class="name">Windy 觀測站圖層</div>
+        <div class="url">windy.com</div>
+        <div class="desc">在地圖開啟「氣象站」圖層，同時對比官方站與民間愛好者上傳的即時實測風速與氣溫。</div>
+        <div class="scene">適用：視覺化對比官方與民間即時觀測數據</div>
+      </div>
+
+      <div style="margin:8px 0 4px 0;"><strong style="color:#333;">台灣及鄰近地區民間氣象團隊</strong></div>
+      <div class="civic-item">
+        <div class="name">WeatherRisk（天氣風險管理開發）</div>
+        <div class="url">Facebook 專頁</div>
+        <div class="desc">台灣首家民間氣象公司，發布針對台灣及西太平洋熱帶系統的淺白趨勢分析。</div>
+        <div class="scene">適用：規劃台灣行程、追蹤西太平洋颱風</div>
+      </div>
+      <div class="civic-item">
+        <div class="name">台灣颱風論壇｜天氣特急</div>
+        <div class="url">社群論壇</div>
+        <div class="desc">追蹤西太平洋颱風動態、鋒面南下及寒潮爆發，常對比歐洲（EC）與美國（GFS）模式。</div>
+        <div class="scene">適用：颱風動態與中長期天氣趨勢參考</div>
+      </div>
+
+      <div class="civic-tip">
+        <strong>💡 使用建議：</strong><br>
+        • 看「確定性」用官方：香港天文台擁有本地最完整雷達與高空探空數據，未來 1-2 小時「定點降雨」及正式警告以官方為準。<br>
+        • 看「中長期變數」參考民間：4-10 天天氣（如颱風轉向、冷鋒抵達），官方較保守；民間組織會展示不同電腦模式的「系集分歧」，能更早掌握天氣劇本。
+      </div>
     </div>
   </div>
 </div>
