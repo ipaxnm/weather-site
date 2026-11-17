@@ -27,6 +27,7 @@
   .month-card .mprecip { font-size: 13px; color: #2980b9; font-weight: 600; margin-bottom: 4px; }
   .month-card .panom { font-size: 10px; color: #2980b9; }
   .note { font-size: 11px; color: #888; margin-top: 12px; line-height: 1.4; }
+  .source { font-size: 10px; color: #666; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc; text-align: left; }
 </style>
 </head>
 <body>
@@ -43,6 +44,7 @@
       <div><span class="label">風速</span><span class="value" id="windspeed">--km/h</span></div>
     </div>
     <div class="time" id="time">更新中…</div>
+    <div class="source">📡 即時天氣：Open-Meteo（NOAA NCEP, DWD, ECMWF 等國家氣象局數據）</div>
   </div>
 
   <div class="card">
@@ -50,7 +52,8 @@
     <div class="month-grid" id="months">
       <!-- 由 JavaScript 動態填入 -->
     </div>
-    <div class="note">資料來源：Open-Meteo / ECMWF SEAS5 季節氣候模型。這是氣候趨勢展望，非每日精確預報；溫度與降水為月平均值，異常值為較常年平均的偏離。</div>
+    <div class="note">資料來源：Open-Meteo / ECMWF SEAS5 季節氣候模型（歐洲中期天氣預報中心）。這是氣候趨勢展望，非每日精確預報；溫度與降水為月平均值，異常值為較常年平均的偏離。</div>
+    <div class="source">📡 季節展望：ECMWF SEAS5 / Open-Meteo Seasonal API（長達 9 個月機率性預報）</div>
   </div>
 </div>
 
