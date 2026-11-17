@@ -307,7 +307,7 @@ async function fetchHKOForecast() {
     const res = await fetch(url);
     const data = await res.json();
 
-    const forecasts = data.weatherForecast.slice(0, 3);
+    const forecasts = data.weatherForecast.slice(0, 5);
     const grid = document.getElementById('forecast');
     grid.innerHTML = '';
 
