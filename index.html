@@ -82,6 +82,10 @@
       <div><span class="label">濕度</span><span class="value" id="humidity">--%</span></div>
       <div><span class="label">降水</span><span class="value" id="precip">--mm</span></div>
       <div><span class="label">風速</span><span class="value" id="windspeed">--km/h</span></div>
+      <div><span class="label">風向</span><span class="value" id="winddir">--°</span></div>
+      <div><span class="label">陣風</span><span class="value" id="windgust">--km/h</span></div>
+      <div><span class="label">氣壓</span><span class="value" id="pressure">--hPa</span></div>
+      <div><span class="label">能見度</span><span class="value" id="visibility">--km</span></div>
     </div>
     <div class="time" id="time">更新中…</div>
     <div class="source" id="source">📡 即時天氣：香港天文台 Open Data / Open-Meteo</div>
@@ -285,7 +289,7 @@ async function fetchWeather() {
 
   // 備用：Open-Meteo（補充詳細數據）
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weathercode,wind_speed_10m&timezone=Asia%2FHong_Kong`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weathercode,wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,visibility,cloud_cover,dewpoint_2m,uv_index&timezone=Asia%2FHong_Kong`;
     const res = await fetch(url);
     omiData = await res.json();
   } catch (e) {
@@ -330,7 +334,7 @@ async function fetchWeather() {
     }
   }
 
-  // 用 Open-Meteo 補充詳細數據（體感、濕度、降水、風速）
+  // 用 Open-Meteo 補充詳細數據（體感、濕度、降水、風速、風向、陣風、氣壓、能見度、雲量、露點、UV）
   if (omiData) {
     const cur = omiData.current;
     const omiInfo = weatherCodes[cur.weathercode] || {emoji: "🌤️", desc: "未知"};
@@ -350,6 +354,10 @@ async function fetchWeather() {
     document.getElementById('humidity').textContent = cur.relative_humidity_2m + '%';
     document.getElementById('precip').textContent = cur.precipitation + 'mm';
     document.getElementById('windspeed').textContent = cur.wind_speed_10m + 'km/h';
+    document.getElementById('winddir').textContent = (cur.wind_direction_10m !== undefined ? cur.wind_direction_10m : '--') + '°';
+    document.getElementById('windgust').textContent = (cur.wind_gusts_10m !== undefined ? cur.wind_gusts_10m : '--') + 'km/h';
+    document.getElementById('pressure').textContent = (cur.pressure_msl !== undefined ? cur.pressure_msl : '--') + 'hPa';
+    document.getElementById('visibility').textContent = (cur.visibility !== undefined ? (cur.visibility / 1000).toFixed(1) : '--') + 'km';
   }
 }
 
