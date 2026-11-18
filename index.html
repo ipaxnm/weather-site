@@ -50,6 +50,24 @@
   .civic-item .desc { font-size: 10px; color: #555; margin-bottom: 4px; }
   .civic-item .scene { font-size: 9px; color: #888; font-style: italic; }
   .civic-tip { background: #fff3cd; border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 10px; color: #856404; }
+  .multi-source { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .multi-source .src-item { background: #f5f5f5; border-radius: 10px; padding: 10px; font-size: 12px; }
+  .multi-source .src-name { font-weight: 700; color: #333; font-size: 11px; margin-bottom: 4px; display: block; }
+  .multi-source .src-temp { font-size: 16px; font-weight: 800; color: #e67e22; }
+  .multi-source .src-desc { font-size: 10px; color: #666; margin-top: 2px; }
+  .multi-source .src-error { color: #c0392b; font-size: 10px; }
+  .wu-card { background: #f8f9fa; border-radius: 10px; padding: 12px; font-size: 12px; }
+  .wu-card .wu-title { font-weight: 700; color: #333; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .wu-card .wu-time { font-size: 10px; color: #888; margin-top: 4px; }
+  .wu-card .wu-tip { background: #fff3cd; border-radius: 8px; padding: 8px; margin-top: 6px; font-size: 11px; color: #856404; line-height: 1.4; }
+  .wu-card .wu-forecast { margin-top: 8px; display: flex; gap: 6px; overflow-x: auto; }
+  .wu-card .wu-forecast::-webkit-scrollbar { display: none; }
+  .wu-card .wu-day { flex: 0 0 auto; width: 78px; background: #fff; border-radius: 10px; padding: 8px 6px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+  .wu-card .wu-day .d-date { font-weight: 700; font-size: 11px; color: #333; margin-bottom: 3px; }
+  .wu-card .wu-day .d-weather { font-size: 10px; color: #555; margin-bottom: 3px; line-height: 1.3; }
+  .wu-card .wu-day .d-temp { font-size: 13px; font-weight: 700; color: #e67e22; margin-bottom: 2px; }
+  .wu-card .wu-day .d-rh { font-size: 9px; color: #2980b9; }
+  .wu-error { color: #c0392b; font-size: 11px; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -68,6 +86,25 @@
     <div class="time" id="time">更新中…</div>
     <div class="source" id="source">📡 即時天氣：香港天文台 Open Data / Open-Meteo</div>
     <div id="hkTips" style="font-size:11px;color:#856404;background:#fff3cd;border-radius:8px;padding:8px;margin-top:10px;display:none;"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">🌍 多來源天氣比較（香港）</div>
+    <div class="multi-source" id="multi-source">
+      <!-- 由 JavaScript 動態填入 -->
+    </div>
+    <div class="note">各來源獨立抓取，失敗者顯示錯誤。NOAA / Environment Canada / DWD 僅涵蓋美國 / 加拿大 / 德國，香港無數據。</div>
+  </div>
+
+  <div class="card wu-card">
+    <div class="wu-title">🌤️ 香港地下天文台（weather.org.hk）</div>
+    <div id="wu-tip" class="wu-tip">正在獲取即時資訊…</div>
+    <div id="wu-time" class="wu-time"></div>
+    <div id="wu-forecast" class="wu-forecast">
+      <!-- 由 JavaScript 動態填入 -->
+    </div>
+    <div id="wu-error" class="wu-error"></div>
+    <div class="source">📡 民間氣象資源：香港地下天文台（weather.org.hk，1995年成立，民間天氣預報組織）</div>
   </div>
 
   <div class="card">
@@ -391,10 +428,155 @@ async function fetchSeasonal() {
   }
 }
 
+async function fetchWeatherSources() {
+  const container = document.getElementById('multi-source');
+
+  const sources = [
+    {
+      name: '香港天文台 HKO',
+      url: `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc`,
+      parse: (d) => {
+        const tempData = d.temperature.data.find(x => x.place === '香港天文台') || d.temperature.data[0];
+        return { temp: tempData.value, desc: (d.specialWxTips?.[0] || '天氣狀況'), time: d.updateTime };
+      }
+    },
+    {
+      name: 'Open-Meteo',
+      url: `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weathercode&timezone=Asia%2FHong_Kong`,
+      parse: (d) => {
+        const cur = d.current;
+        const info = weatherCodes[cur.weathercode] || { desc: '未知' };
+        return { temp: cur.temperature_2m, desc: info.desc, time: cur.time };
+      }
+    },
+    {
+      name: 'wttr.in',
+      url: `https://wttr.in/Hong+Kong?format=j1`,
+      parse: (d) => {
+        const cur = d.current_condition[0];
+        return { temp: cur.temp_C, desc: cur.weatherDesc[0].value, time: cur.observation_time };
+      }
+    },
+    {
+      name: 'NOAA/NWS (美國)',
+      url: `https://api.weather.gov/points/${LAT},${LON}`,
+      parse: (d) => ({ temp: 'N/A', desc: '僅涵蓋美國地區', time: '-' })
+    },
+    {
+      name: 'Environment Canada',
+      url: `https://api.weather.gc.ca/collections/climate-hourly/items?bbox=${LON - 0.1},${LAT - 0.1},${LON + 0.1},${LAT + 0.1}&limit=1&f=json`,
+      parse: (d) => {
+        const feat = d.features?.[0];
+        return feat ? { temp: feat.properties?.TEMP ?? 'N/A', desc: feat.properties?.STATION_NAME ?? '加拿大氣象站', time: feat.properties?.LOCAL_DATETIME ?? '-' } : { temp: 'N/A', desc: '無附近氣象站', time: '-' };
+      }
+    },
+    {
+      name: 'DWD 德國氣象局',
+      url: 'https://opendata.dwd.de/',
+      parse: (d) => ({ temp: 'N/A', desc: '檔案下載伺服器，無即時 JSON API', time: '-' })
+    },
+  ];
+
+  const results = await Promise.allSettled(sources.map(async (s) => {
+    try {
+      const res = await fetch(s.url, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      return { name: s.name, ...s.parse(data) };
+    } catch (e) {
+      return { name: s.name, error: e.message };
+    }
+  }));
+
+  container.innerHTML = results.map(r => {
+    if (r.error) {
+      return `
+        <div class="src-item">
+          <span class="src-name">${r.name}</span>
+          <span class="src-error">獲取失敗</span>
+        </div>`;
+    }
+    return `
+      <div class="src-item">
+        <span class="src-name">${r.name}</span>
+        <span class="src-temp">${r.temp}°C</span>
+        <span class="src-desc">${r.desc}</span>
+      </div>`;
+  }).join('');
+}
+
+async function fetchWeatherUnderground() {
+  const tipEl = document.getElementById('wu-tip');
+  const timeEl = document.getElementById('wu-time');
+  const forecastEl = document.getElementById('wu-forecast');
+  const errorEl = document.getElementById('wu-error');
+
+  try {
+    const res = await fetch('https://www.weather.org.hk/', { signal: AbortSignal.timeout(12000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+
+    // 更新時間
+    const mTime = html.match(/更新時間：(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2} HKT)/);
+    if (mTime) timeEl.textContent = '更新時間：' + mTime[1];
+
+    // 特別天氣提示
+    const mTip = html.match(/受[^。]+影響[^。]+[。]/);
+    if (mTip) tipEl.innerHTML = '💬 ' + mTip[0].replace(/。$/, '');
+    else tipEl.textContent = '暫無特別天氣提示';
+
+    // 九天預報：提取 星期 X / 日期 / 天氣 / 氣溫 / 濕度 / 降雨概率
+    const days = [];
+    const dayBlocks = html.match(/星期[一二三四五六日天][\s\S]{0,400}?氣溫：[\s\S]{0,80}?降雨概率：[^\n<]+/g);
+    if (dayBlocks) {
+      for (const block of dayBlocks.slice(0, 9)) {
+        const mName = block.match(/星期[一二三四五六日天]/);
+        const mDate = block.match(/(\d{4}-\d{2}-\d{2})/);
+        const mWeather = block.match(/天氣：([^\n]+)/);
+        const mTemp = block.match(/氣溫：([^\n]+)/);
+        const mRH = block.match(/相對濕度：([^\n]+)/);
+        const mPop = block.match(/降雨概率：([^\n]+)/);
+
+        if (mName && mDate && mWeather) {
+          const date = mDate[1].substring(5);
+          const weekday = mName[0];
+          const weather = mWeather[1].trim().replace(/\s+/g, ' ');
+          const temp = mTemp ? mTemp[1].trim() : '--';
+          const rh = mRH ? mRH[1].trim() : '--';
+          const pop = mPop ? mPop[1].trim() : '--';
+
+          days.push({ weekday, date, weather, temp, rh, pop });
+        }
+      }
+    }
+
+    forecastEl.innerHTML = days.map(d => `
+      <div class="wu-day">
+        <div class="d-date">${d.weekday}<br>${d.date}</div>
+        <div class="d-weather">${d.weather}</div>
+        <div class="d-temp">${d.temp}</div>
+        <div class="d-rh">${d.rh} · ${d.pop}</div>
+      </div>
+    `).join('');
+
+    errorEl.textContent = '';
+  } catch (e) {
+    tipEl.textContent = '無法直接讀取 weather.org.hk（跨域限制）';
+    timeEl.textContent = '';
+    forecastEl.innerHTML = '';
+    errorEl.textContent = '⚠️ 跨域限制：前端無法直接抓取 weather.org.hk 網頁。請前往 https://www.weather.org.hk/ 查看完整資訊。';
+    console.error('Weather Underground fetch failed', e);
+  }
+}
+
 fetchWeather();
+fetchWeatherSources();
+fetchWeatherUnderground();
 fetchHKOForecast();
 fetchSeasonal();
 setInterval(fetchWeather, 30 * 60 * 1000);
+setInterval(fetchWeatherSources, 30 * 60 * 1000);
+setInterval(fetchWeatherUnderground, 30 * 60 * 1000);
 </script>
 </body>
 </html>
