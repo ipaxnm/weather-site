@@ -233,14 +233,39 @@ const hkoIconMap = {
 const monthNames = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
 
 async function fetchWeather() {
+  let hkoData = null;
+  let omiData = null;
+
   // 優先使用香港天文台即時天氣（本地可連線）
   try {
     const url = `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc`;
     const res = await fetch(url);
-    const data = await res.json();
+    hkoData = await res.json();
+  } catch (e) {
+    console.error('HKO 即時天氣失敗', e);
+  }
 
-    const tempData = data.temperature.data.find(d => d.place === '香港天文台') || data.temperature.data[0];
-    const iconCode = data.icon?.[0] || 50;
+  // 備用：Open-Meteo（補充詳細數據）
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weathercode,wind_speed_10m&timezone=Asia%2FHong_Kong`;
+    const res = await fetch(url);
+    omiData = await res.json();
+  } catch (e) {
+    console.error('Open-Meteo 即時天氣失敗', e);
+  }
+
+  // 若兩者皆失敗
+  if (!hkoData && !omiData) {
+    document.getElementById('desc').textContent = '即時天氣獲取失敗';
+    document.getElementById('source').textContent = '📡 即時天氣：所有來源均失敗';
+    document.getElementById('hkTips').style.display = 'none';
+    return;
+  }
+
+  // 顯示 HKO 數據（優先）
+  if (hkoData) {
+    const tempData = hkoData.temperature.data.find(d => d.place === '香港天文台') || hkoData.temperature.data[0];
+    const iconCode = hkoData.icon?.[0] || 50;
     const hkoEmojiMap = {
       50: "☀️", 51: "🌤️", 52: "⛅", 53: "☁️", 54: "🌥️", 55: "🌦️", 56: "🌧️", 57: "🌧️",
       60: "🌧️", 61: "🌦️", 62: "🌧️", 63: "🌧️", 64: "🌧️", 65: "🌧️", 66: "🌧️", 67: "🌧️",
@@ -254,51 +279,39 @@ async function fetchWeather() {
     document.getElementById('city').textContent = '香港';
     document.getElementById('emoji').textContent = emoji;
     document.getElementById('temp').textContent = tempData.value + '°C';
-    document.getElementById('desc').textContent = data.specialWxTips?.[0] || '天氣狀況';
-    document.getElementById('humidity').textContent = '--%';
-    document.getElementById('precip').textContent = '--mm';
-    document.getElementById('windspeed').textContent = '--km/h';
-    document.getElementById('time').textContent = '更新時間：' + new Date(data.updateTime).toLocaleString('zh-HK');
+    document.getElementById('desc').textContent = hkoData.specialWxTips?.[0] || '天氣狀況';
+    document.getElementById('time').textContent = '更新時間：' + new Date(hkoData.updateTime).toLocaleString('zh-HK');
     document.getElementById('source').textContent = '📡 即時天氣：香港天文台 Open Data';
 
     const tipsEl = document.getElementById('hkTips');
-    if (data.specialWxTips && data.specialWxTips[0]) {
-      tipsEl.textContent = '💬 ' + data.specialWxTips[0];
+    if (hkoData.specialWxTips && hkoData.specialWxTips[0]) {
+      tipsEl.textContent = '💬 ' + hkoData.specialWxTips[0];
       tipsEl.style.display = 'block';
     } else {
       tipsEl.style.display = 'none';
     }
-    return;
-  } catch (e) {
-    console.error('HKO 即時天氣失敗，嘗試 Open-Meteo 備用', e);
   }
 
-  // 備用：Open-Meteo
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weathercode,wind_speed_10m&timezone=Asia%2FHong_Kong`;
-    const res = await fetch(url);
-    const data = await res.json();
+  // 用 Open-Meteo 補充詳細數據（體感、濕度、降水、風速）
+  if (omiData) {
+    const cur = omiData.current;
+    const omiInfo = weatherCodes[cur.weathercode] || {emoji: "🌤️", desc: "未知"};
 
-    const cur = data.current;
-    const code = cur.weathercode;
-    const info = weatherCodes[code] || {emoji: "🌤️", desc: "未知"};
+    // 若 HKO 未提供溫度，用 Open-Meteo
+    if (!hkoData) {
+      document.getElementById('city').textContent = '香港';
+      document.getElementById('emoji').textContent = omiInfo.emoji;
+      document.getElementById('temp').textContent = cur.temperature_2m + '°C';
+      document.getElementById('desc').textContent = omiInfo.desc;
+      document.getElementById('time').textContent = '更新時間：' + new Date().toLocaleString('zh-HK');
+      document.getElementById('source').textContent = '📡 即時天氣：Open-Meteo（備用來源）';
+      document.getElementById('hkTips').style.display = 'none';
+    }
 
-    document.getElementById('city').textContent = '香港';
-    document.getElementById('emoji').textContent = info.emoji;
-    document.getElementById('temp').textContent = cur.temperature_2m + '°C';
-    document.getElementById('desc').textContent = info.desc;
     document.getElementById('feelslike').textContent = cur.apparent_temperature + '°C';
     document.getElementById('humidity').textContent = cur.relative_humidity_2m + '%';
     document.getElementById('precip').textContent = cur.precipitation + 'mm';
     document.getElementById('windspeed').textContent = cur.wind_speed_10m + 'km/h';
-    document.getElementById('time').textContent = '更新時間：' + new Date().toLocaleString('zh-HK');
-    document.getElementById('source').textContent = '📡 即時天氣：Open-Meteo（備用來源）';
-    document.getElementById('hkTips').style.display = 'none';
-  } catch (e) {
-    document.getElementById('desc').textContent = '即時天氣獲取失敗';
-    document.getElementById('source').textContent = '📡 即時天氣：所有來源均失敗';
-    document.getElementById('hkTips').style.display = 'none';
-    console.error(e);
   }
 }
 
