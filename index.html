@@ -304,8 +304,29 @@ async function fetchWeather() {
     return;
   }
 
-  // 顯示 HKO 數據（優先）
-  if (hkoData) {
+  // 顯示 Open-Meteo 數據（主要來源：更新更及時）
+  if (omiData) {
+    const cur = omiData.current;
+    const omiInfo = weatherCodes[cur.weathercode] || {emoji: "🌤️", desc: "未知"};
+
+    document.getElementById('city').textContent = '香港';
+    document.getElementById('emoji').textContent = omiInfo.emoji;
+    document.getElementById('temp').textContent = cur.temperature_2m + '°C';
+    document.getElementById('desc').textContent = omiInfo.desc;
+    document.getElementById('time').textContent = '更新時間：' + new Date(cur.time).toLocaleString('zh-HK');
+    document.getElementById('source').textContent = '📡 即時天氣：Open-Meteo（主要來源）';
+    document.getElementById('hkTips').style.display = 'none';
+
+    document.getElementById('feelslike').textContent = cur.apparent_temperature + '°C';
+    document.getElementById('humidity').textContent = cur.relative_humidity_2m + '%';
+    document.getElementById('precip').textContent = cur.precipitation + 'mm';
+    document.getElementById('windspeed').textContent = cur.wind_speed_10m + 'km/h';
+    document.getElementById('winddir').textContent = (cur.wind_direction_10m !== undefined ? cur.wind_direction_10m : '--') + '°';
+    document.getElementById('windgust').textContent = (cur.wind_gusts_10m !== undefined ? cur.wind_gusts_10m : '--') + 'km/h';
+    document.getElementById('pressure').textContent = (cur.pressure_msl !== undefined ? cur.pressure_msl : '--') + 'hPa';
+    document.getElementById('visibility').textContent = (cur.visibility !== undefined ? (cur.visibility / 1000).toFixed(1) : '--') + 'km';
+  } else {
+    // Open-Meteo 失敗，回退到 HKO
     const tempData = hkoData.temperature.data.find(d => d.place === '香港天文台') || hkoData.temperature.data[0];
     const iconCode = hkoData.icon?.[0] || 50;
     const hkoEmojiMap = {
@@ -323,7 +344,7 @@ async function fetchWeather() {
     document.getElementById('temp').textContent = tempData.value + '°C';
     document.getElementById('desc').textContent = hkoData.specialWxTips?.[0] || '天氣狀況';
     document.getElementById('time').textContent = '更新時間：' + new Date(hkoData.updateTime).toLocaleString('zh-HK');
-    document.getElementById('source').textContent = '📡 即時天氣：香港天文台 Open Data';
+    document.getElementById('source').textContent = '📡 即時天氣：香港天文台 Open Data（備用來源）';
 
     const tipsEl = document.getElementById('hkTips');
     if (hkoData.specialWxTips && hkoData.specialWxTips[0]) {
@@ -332,32 +353,15 @@ async function fetchWeather() {
     } else {
       tipsEl.style.display = 'none';
     }
-  }
 
-  // 用 Open-Meteo 補充詳細數據（體感、濕度、降水、風速、風向、陣風、氣壓、能見度、雲量、露點、UV）
-  if (omiData) {
-    const cur = omiData.current;
-    const omiInfo = weatherCodes[cur.weathercode] || {emoji: "🌤️", desc: "未知"};
-
-    // 若 HKO 未提供溫度，用 Open-Meteo
-    if (!hkoData) {
-      document.getElementById('city').textContent = '香港';
-      document.getElementById('emoji').textContent = omiInfo.emoji;
-      document.getElementById('temp').textContent = cur.temperature_2m + '°C';
-      document.getElementById('desc').textContent = omiInfo.desc;
-      document.getElementById('time').textContent = '更新時間：' + new Date().toLocaleString('zh-HK');
-      document.getElementById('source').textContent = '📡 即時天氣：Open-Meteo（備用來源）';
-      document.getElementById('hkTips').style.display = 'none';
-    }
-
-    document.getElementById('feelslike').textContent = cur.apparent_temperature + '°C';
-    document.getElementById('humidity').textContent = cur.relative_humidity_2m + '%';
-    document.getElementById('precip').textContent = cur.precipitation + 'mm';
-    document.getElementById('windspeed').textContent = cur.wind_speed_10m + 'km/h';
-    document.getElementById('winddir').textContent = (cur.wind_direction_10m !== undefined ? cur.wind_direction_10m : '--') + '°';
-    document.getElementById('windgust').textContent = (cur.wind_gusts_10m !== undefined ? cur.wind_gusts_10m : '--') + 'km/h';
-    document.getElementById('pressure').textContent = (cur.pressure_msl !== undefined ? cur.pressure_msl : '--') + 'hPa';
-    document.getElementById('visibility').textContent = (cur.visibility !== undefined ? (cur.visibility / 1000).toFixed(1) : '--') + 'km';
+    document.getElementById('feelslike').textContent = '--°C';
+    document.getElementById('humidity').textContent = '--%';
+    document.getElementById('precip').textContent = '--mm';
+    document.getElementById('windspeed').textContent = '--km/h';
+    document.getElementById('winddir').textContent = '--°';
+    document.getElementById('windgust').textContent = '--km/h';
+    document.getElementById('pressure').textContent = '--hPa';
+    document.getElementById('visibility').textContent = '--km';
   }
 }
 
