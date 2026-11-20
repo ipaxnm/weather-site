@@ -349,8 +349,22 @@ async function fetchWeather() {
     document.getElementById('rainfall').textContent = (hkRain?.value !== undefined ? hkRain.value : '--') + 'mm';
     // 顯示天氣警報（寒冷天氣、季候風、暴雨、颱風等）
     const alertEl = document.getElementById('weatherAlert');
-    if (hkoWarnings && hkoWarnings.warningInformation && hkoWarnings.warningInformation.length > 0) {
-      const msgs = hkoWarnings.warningInformation.map(w => w.name || w.title || w.type || '').filter(Boolean);
+    const warningCodeMap = {
+      'WMSGNL': '強烈季候風信號',
+      'WCOLD': '寒冷天氣警告',
+      'WFIRE': '火災危險警告',
+      'WTHUNDERSTORM': '雷暴警告',
+      'WRAINYELLOW': '暴雨黃色警告',
+      'WRAINRED': '暴雨紅色警告',
+      'WRAINBLACK': '暴雨黑色警告',
+      'WTSIGNAL1': '一號戒備信號',
+      'WTSIGNAL3': '三號強風信號',
+      'WTSIGNAL8': '八號風球',
+      'WTSIGNAL9': '九號烈風或暴風信號',
+      'WTSIGNAL10': '十號颱風信號'
+    };
+    if (hkoWarnings && hkoWarnings.details && hkoWarnings.details.length > 0) {
+      const msgs = hkoWarnings.details.map(w => warningCodeMap[w.warningStatementCode] || w.warningStatementCode || '天氣警告').filter(Boolean);
       if (msgs.length > 0) {
         alertEl.textContent = '⚠️ ' + msgs.join('；');
         alertEl.style.display = 'block';
@@ -403,8 +417,22 @@ async function fetchWeather() {
     document.getElementById('rainfall').textContent = '--mm';
     // 顯示天氣警報（寒冷天氣、季候風、暴雨、颱風等）
     const alertEl = document.getElementById('weatherAlert');
-    if (hkoWarnings && hkoWarnings.warningInformation && hkoWarnings.warningInformation.length > 0) {
-      const msgs = hkoWarnings.warningInformation.map(w => w.name || w.title || w.type || '').filter(Boolean);
+    const warningCodeMap = {
+      'WMSGNL': '強烈季候風信號',
+      'WCOLD': '寒冷天氣警告',
+      'WFIRE': '火災危險警告',
+      'WTHUNDERSTORM': '雷暴警告',
+      'WRAINYELLOW': '暴雨黃色警告',
+      'WRAINRED': '暴雨紅色警告',
+      'WRAINBLACK': '暴雨黑色警告',
+      'WTSIGNAL1': '一號戒備信號',
+      'WTSIGNAL3': '三號強風信號',
+      'WTSIGNAL8': '八號風球',
+      'WTSIGNAL9': '九號烈風或暴風信號',
+      'WTSIGNAL10': '十號颱風信號'
+    };
+    if (hkoWarnings && hkoWarnings.details && hkoWarnings.details.length > 0) {
+      const msgs = hkoWarnings.details.map(w => warningCodeMap[w.warningStatementCode] || w.warningStatementCode || '天氣警告').filter(Boolean);
       if (msgs.length > 0) {
         alertEl.textContent = '⚠️ ' + msgs.join('；');
         alertEl.style.display = 'block';
