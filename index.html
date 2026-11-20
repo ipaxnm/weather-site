@@ -18,6 +18,7 @@
   .label { font-size: 11px; color: #999; display: block; margin-bottom: 4px; }
   .value { font-weight: 700; color: #333; }
   .time { font-size: 12px; color: #999; margin-top: 10px; }
+  .alert { background: #fdecea; border-left: 4px solid #c0392b; padding: 10px; margin: 10px 0 0 0; font-size: 12px; color: #c0392b; border-radius: 8px; line-height: 1.4; }
   .section-title { font-size: 16px; font-weight: 700; color: #333; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
   .forecast-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
   .forecast-grid::-webkit-scrollbar { display: none; }
@@ -94,6 +95,7 @@
     <div class="time" id="time">更新中…</div>
     <div class="source" id="source">📡 即時天氣：香港天文台 Open Data / Open-Meteo</div>
     <div id="hkTips" style="font-size:11px;color:#856404;background:#fff3cd;border-radius:8px;padding:8px;margin-top:10px;display:none;"></div>
+    <div id="weatherAlert" class="alert" style="display:none;"></div>
   </div>
 
   <div class="card">
@@ -281,6 +283,7 @@ const monthNames = ["1月","2月","3月","4月","5月","6月","7月","8月","9�
 async function fetchWeather() {
   let hkoData = null;
   let omiData = null;
+  let hkoWarnings = null;
 
   // 優先使用香港天文台即時天氣（本地可連線）
   try {
@@ -289,6 +292,15 @@ async function fetchWeather() {
     hkoData = await res.json();
   } catch (e) {
     console.error('HKO 即時天氣失敗', e);
+  }
+
+  // 抓取香港天文台警告資訊（寒冷天氣、季候風、暴雨、颱風等）
+  try {
+    const url = `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warningInfo&lang=tc`;
+    const res = await fetch(url);
+    hkoWarnings = await res.json();
+  } catch (e) {
+    console.error('HKO 警告資訊失敗', e);
   }
 
   // 備用：Open-Meteo（補充詳細數據）
@@ -335,6 +347,19 @@ async function fetchWeather() {
     // 雨量：優先顯示香港天文台累積雨量
     const hkRain = hkoData?.rainfall?.data?.find(d => d.place === '香港天文台');
     document.getElementById('rainfall').textContent = (hkRain?.value !== undefined ? hkRain.value : '--') + 'mm';
+    // 顯示天氣警報（寒冷天氣、季候風、暴雨、颱風等）
+    const alertEl = document.getElementById('weatherAlert');
+    if (hkoWarnings && hkoWarnings.warningInformation && hkoWarnings.warningInformation.length > 0) {
+      const msgs = hkoWarnings.warningInformation.map(w => w.name || w.title || w.type || '').filter(Boolean);
+      if (msgs.length > 0) {
+        alertEl.textContent = '⚠️ ' + msgs.join('；');
+        alertEl.style.display = 'block';
+      } else {
+        alertEl.style.display = 'none';
+      }
+    } else {
+      alertEl.style.display = 'none';
+    }
   } else {
     // Open-Meteo 失敗，回退到 HKO
     const tempData = hkoData.temperature.data.find(d => d.place === '香港天文台') || hkoData.temperature.data[0];
@@ -376,6 +401,19 @@ async function fetchWeather() {
     document.getElementById('dewpoint').textContent = '--°C';
     document.getElementById('uvindex').textContent = '--';
     document.getElementById('rainfall').textContent = '--mm';
+    // 顯示天氣警報（寒冷天氣、季候風、暴雨、颱風等）
+    const alertEl = document.getElementById('weatherAlert');
+    if (hkoWarnings && hkoWarnings.warningInformation && hkoWarnings.warningInformation.length > 0) {
+      const msgs = hkoWarnings.warningInformation.map(w => w.name || w.title || w.type || '').filter(Boolean);
+      if (msgs.length > 0) {
+        alertEl.textContent = '⚠️ ' + msgs.join('；');
+        alertEl.style.display = 'block';
+      } else {
+        alertEl.style.display = 'none';
+      }
+    } else {
+      alertEl.style.display = 'none';
+    }
   }
 }
 
