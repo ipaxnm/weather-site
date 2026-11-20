@@ -13,7 +13,7 @@
   .temp { font-size: 48px; font-weight: 800; color: #111; margin: 8px 0; }
   .desc { font-size: 15px; color: #555; margin-bottom: 16px; }
   .emoji { font-size: 40px; margin: 12px 0; }
-  .detail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 13px; color: #666; }
+  .detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; font-size: 13px; color: #666; }
   .detail div { background: #f5f5f5; border-radius: 12px; padding: 12px; text-align: center; }
   .label { font-size: 11px; color: #999; display: block; margin-bottom: 4px; }
   .value { font-weight: 700; color: #333; }
@@ -86,6 +86,10 @@
       <div><span class="label">陣風</span><span class="value" id="windgust">--km/h</span></div>
       <div><span class="label">氣壓</span><span class="value" id="pressure">--hPa</span></div>
       <div><span class="label">能見度</span><span class="value" id="visibility">--km</span></div>
+      <div><span class="label">雲量</span><span class="value" id="cloudcover">--%</span></div>
+      <div><span class="label">露點</span><span class="value" id="dewpoint">--°C</span></div>
+      <div><span class="label">紫外線</span><span class="value" id="uvindex">--</span></div>
+      <div><span class="label">雨量(累積)</span><span class="value" id="rainfall">--mm</span></div>
     </div>
     <div class="time" id="time">更新中…</div>
     <div class="source" id="source">📡 即時天氣：香港天文台 Open Data / Open-Meteo</div>
@@ -325,6 +329,12 @@ async function fetchWeather() {
     document.getElementById('windgust').textContent = (cur.wind_gusts_10m !== undefined ? cur.wind_gusts_10m : '--') + 'km/h';
     document.getElementById('pressure').textContent = (cur.pressure_msl !== undefined ? cur.pressure_msl : '--') + 'hPa';
     document.getElementById('visibility').textContent = (cur.visibility !== undefined ? (cur.visibility / 1000).toFixed(1) : '--') + 'km';
+    document.getElementById('cloudcover').textContent = (cur.cloud_cover !== undefined ? cur.cloud_cover : '--') + '%';
+    document.getElementById('dewpoint').textContent = (cur.dewpoint_2m !== undefined ? cur.dewpoint_2m : '--') + '°C';
+    document.getElementById('uvindex').textContent = (cur.uv_index !== undefined ? cur.uv_index : '--');
+    // 雨量：優先顯示香港天文台累積雨量
+    const hkRain = hkoData?.rainfall?.data?.find(d => d.place === '香港天文台');
+    document.getElementById('rainfall').textContent = (hkRain?.value !== undefined ? hkRain.value : '--') + 'mm';
   } else {
     // Open-Meteo 失敗，回退到 HKO
     const tempData = hkoData.temperature.data.find(d => d.place === '香港天文台') || hkoData.temperature.data[0];
@@ -362,6 +372,10 @@ async function fetchWeather() {
     document.getElementById('windgust').textContent = '--km/h';
     document.getElementById('pressure').textContent = '--hPa';
     document.getElementById('visibility').textContent = '--km';
+    document.getElementById('cloudcover').textContent = '--%';
+    document.getElementById('dewpoint').textContent = '--°C';
+    document.getElementById('uvindex').textContent = '--';
+    document.getElementById('rainfall').textContent = '--mm';
   }
 }
 
